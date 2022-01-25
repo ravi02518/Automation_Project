@@ -7,7 +7,7 @@ else
   echo "Process is not running."
   sudo apt update
   sudo apt install apache2
-  service apache2 start
+  sudo service apache2 start
 fi
 echo "Creating TimeStamp"
 ts=$(date +"%d%m%Y"-"%H%M%S")
