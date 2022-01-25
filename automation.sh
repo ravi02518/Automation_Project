@@ -1,5 +1,4 @@
 #!/bin/bash
-#!/bin/bash
 if [ $(/etc/init.d/apache2 status | grep 'Apache2 is running' | wc -l) > 0 ]
 then
  echo "Process is running."
@@ -7,8 +6,9 @@ else
   echo "Process is not running."
   sudo apt update
   sudo apt install apache2
-  service apache2 start
+  sudo service apache2 start
 fi
+myname=chenna
 echo "Creating TimeStamp"
 ts=$(date +"%d%m%Y"-"%H%M%S")
 echo $ts
@@ -17,8 +17,25 @@ cd /var/log/apache2
 echo "Listing logs file from apache dir"
 ls -l
 echo "Crating TAR File of Apache logs"
-tar -cvf /tmp/Chenna-httpd-logs-$ts.tar ./access.log ./error.log ./other_vhosts_access.log
+tar -cvf /tmp/$myname-httpd-logs-$ts.tar ./access.log ./error.log ./other_vhosts_access.log
 cd /tmp
 echo "Printing the TAR file from TMP DIR"
 ls
-aws s3 cp ./Chenna-httpd-logs-$ts.tar s3://upgrad-chenna/
+SIZE_OF_FILE=$(ls -lh ./$myname-httpd-logs-$ts.tar | awk '{print  $5}')
+aws s3 cp ./$myname-httpd-logs-$ts.tar s3://upgrad-chenna/
+echo "File Size:  $SIZE_OF_FILE"
+INVENTORY_FILE=/var/www/html/inventory.html
+if [ -f $INVENTORY_FILE ]; then
+        echo "Inventory File exists. Updating the Inventory file."
+        echo "httpd-logs        $ts             tar     $SIZE_OF_FILE" >> $INVENTORY_FILE
+else
+        touch $INVENTORY_FILE && echo "Log_Type Time_Created            Type    Size" >>$INVENTORY_FILE
+        echo "httpd-logs        $ts             tar     $SIZE_OF_FILE" >> $INVENTORY_FILE
+fi
+CRON_PATH=/etc/cron.d/automation
+if [ -f $CRON_PATH ]; then
+  echo "Cron Job is Scheduled."
+else
+  echo "Cron Job is not available. Creating the CronJob now..."
+  touch $CRON_PATH && echo "0 0 * * * root /root/Automation_Project/automation.sh" >> $CRON_PATH
+fi
