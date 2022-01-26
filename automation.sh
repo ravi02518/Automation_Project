@@ -1,9 +1,9 @@
 #!/bin/bash
 if [ $(/etc/init.d/apache2 status | grep 'Apache2 is running' | wc -l) > 0 ]
 then
- echo "Process is running."
+ echo "Apache Process is running."
 else
-  echo "Process is not running."
+  echo "Apache Process is not running."
   sudo apt update
   sudo apt install apache2
   sudo service apache2 start
@@ -23,20 +23,19 @@ echo "Printing the TAR file from TMP DIR"
 ls
 SIZE_OF_FILE=$(ls -lh ./$myname-httpd-logs-$ts.tar | awk '{print  $5}')
 aws s3 cp ./$myname-httpd-logs-$ts.tar s3://upgrad-chenna/
-#SIZE_OF_FILE=$(ls -lh ./$myname-http-logs-$ts.tar | awk '{print  $5}')
 echo "File Size:  $SIZE_OF_FILE"
 INVENTORY_FILE=/var/www/html/inventory.html
 if [ -f $INVENTORY_FILE ]; then
         echo "Inventory File exists. Updating the Inventory file."
         echo "httpd-logs        $ts             tar     $SIZE_OF_FILE" >> $INVENTORY_FILE
 else
-        touch $INVENTORY_FILE && echo "Log_Type Time_Created            Type    Size" >>$INVENTORY_FILE
+        touch $INVENTORY_FILE && echo "LogType TimeCreated            Type    Size" >>$INVENTORY_FILE
         echo "httpd-logs        $ts             tar     $SIZE_OF_FILE" >> $INVENTORY_FILE
 fi
 CRON_PATH=/etc/cron.d/automation
 if [ -f $CRON_PATH ]; then
   echo "Cron Job is Scheduled."
 else
-  echo "Cron Job is not available. Creating the CronJob now..."
+  echo "Cron Job is not available. Scheduling the CronJob now."
   touch $CRON_PATH && echo "0 0 * * * root /root/Automation_Project/automation.sh" >> $CRON_PATH
 fi
